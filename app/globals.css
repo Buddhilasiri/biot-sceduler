@@ -1,0 +1,237 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-biot-raisin text-neutral-200 font-sans;
+  }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Calendar grid styles */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+  grid-template-rows: repeat(4, 64px);
+  gap: 1px;
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #8e6fff40;
+}
+
+.calendar-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(142, 111, 255, 0.4);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Time gutter */
+.time-gutter {
+  width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.75rem;
+  background: rgba(25, 23, 36, 0.8);
+  border-right: 1px solid rgba(142, 111, 255, 0.4);
+  color: rgb(212, 212, 212);
+  font-size: 0.75rem;
+}
+
+/* Slot cell base */
+.slot-cell {
+  position: relative;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  color: rgb(212, 212, 212);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.5rem;
+  font-size: 11px;
+  transition: all 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .slot-cell {
+    transition: all 150ms ease-out;
+  }
+}
+
+.slot-cell:hover:not(:disabled) {
+  border-color: #8e6fff;
+  backdrop-filter: brightness(1.1);
+}
+
+.slot-cell:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fec53c;
+}
+
+/* Slot states */
+.slot-free .start-time {
+  font-weight: 500;
+}
+
+.slot-free .end-time {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  font-size: 10px;
+  color: rgba(142, 111, 255, 0.7);
+}
+
+.slot-booked {
+  background: rgba(142, 111, 255, 0.25);
+  border: 1px dashed rgba(142, 111, 255, 0.6);
+  cursor: not-allowed;
+}
+
+.slot-booked .start-time,
+.slot-booked .end-time {
+  text-decoration: line-through;
+}
+
+.slot-holiday {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0px,
+    transparent 6px,
+    rgba(142, 111, 255, 0.35) 6px,
+    rgba(142, 111, 255, 0.35) 12px
+  );
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.slot-selected {
+  box-shadow: inset 0 0 0 2px #fec53c;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .slot-selected::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(254, 197, 60, 0.1);
+    animation: pulse 400ms ease-in-out infinite alternate;
+  }
+}
+
+/* Week header */
+.week-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(25, 23, 36, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.weekday-header {
+  text-align: center;
+  padding: 1rem 0.5rem;
+  border-bottom: 2px solid #8e6fff;
+  background: rgba(25, 23, 36, 0.8);
+}
+
+.weekday-name {
+  font-weight: 600;
+  font-variant: small-caps;
+  font-size: 0.75rem;
+  color: rgb(229, 231, 235);
+}
+
+.weekday-date {
+  font-size: 0.875rem;
+  color: rgb(163, 163, 163);
+  margin-top: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .calendar-grid {
+    grid-template-columns: 60px 1fr;
+    overflow-x: auto;
+  }
+
+  .weekday-headers {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .weekday-header {
+    min-width: 120px;
+    flex-shrink: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe\:hover\:scale-105:hover {
+    transform: none;
+  }
+  .motion-safe\:transition-all {
+    transition: none;
+  }
+}
