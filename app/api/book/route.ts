@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
+import db from "@/lib/db"
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, slot } = await request.json()
+    const { token, slot, name, email } = await request.json()
 
     // Handle admin access
     if (token === "admin-token") {
@@ -18,10 +19,24 @@ export async function POST(request: NextRequest) {
     // In production, verify the JWT token here
     // and validate the slot availability
 
-    // Simulate booking process
+    const start = new Date(slot)
+    const end = new Date(start.getTime() + 30 * 60 * 1000)
+
+    // Check for existing booking
+    const existing = db.prepare("SELECT 1 FROM bookings WHERE start = ?").get(start.toISOString())
+    if (existing) {
+      return NextResponse.json({ success: false, message: "Slot already booked" }, { status: 400 })
+    }
+
+    db.prepare(
+      "INSERT INTO bookings (start, end, name, email) VALUES (?, ?, ?, ?)"
+    ).run(start.toISOString(), end.toISOString(), name || "", email || "")
+
     const bookingData = {
       token,
       slot,
+      name,
+      email,
       timestamp: new Date().toISOString(),
     }
 
