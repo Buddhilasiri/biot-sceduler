@@ -102,22 +102,37 @@ function ScheduleContent() {
       const weekString = getWeekString(currentWeek)
       const response = await fetch(`/api/slots?week=${weekString}`)
       if (response.ok) {
-        const slots: string[] = await response.json()
-        const bookedSet = new Set(slots.map((s) => toUTC(new Date(s))))
-        setSlotsBooked(bookedSet)
+        const available: string[] = await response.json()
 
-        // Build event lookup for admin mode
+        // Build a set of available UTC times
+        const availableSet = new Set(available.map((s) => toUTC(new Date(s))))
+
+        const bookedSet: Set<number> = new Set()
         const lookup: Record<number, { eventId: string; start: Date; end: Date }> = {}
-        slots.forEach((slot, index) => {
-          const start = new Date(slot)
-          const end = new Date(start.getTime() + 30 * 60 * 1000)
-          const utc = toUTC(start)
-          lookup[utc] = {
-            eventId: `event-${index}`,
-            start,
-            end,
-          }
+
+        // Generate all possible slots for the week
+        const weekDates = getWeekDates(currentWeek)
+        let eventIndex = 0
+        weekDates.forEach((date) => {
+          timeSlots.forEach((ts) => {
+            const [h, m] = ts.value.split(":").map(Number)
+            const start = new Date(date)
+            start.setHours(h, m, 0, 0)
+            const end = new Date(start.getTime() + 30 * 60 * 1000)
+            const utc = toUTC(start)
+            if (!availableSet.has(utc)) {
+              bookedSet.add(utc)
+              lookup[utc] = {
+                eventId: start.toISOString(),
+                start,
+                end,
+              }
+              eventIndex++
+            }
+          })
         })
+
+        setSlotsBooked(bookedSet)
         setEventLookup(lookup)
       }
     } catch (error) {
@@ -256,7 +271,7 @@ function ScheduleContent() {
         setEventLookup((prev) => ({
           ...prev,
           [startUTC]: {
-            eventId: `event-${Date.now()}`,
+            eventId: selectedSlot.start.toISOString(),
             start: selectedSlot.start,
             end: selectedSlot.end,
           },
@@ -281,6 +296,7 @@ function ScheduleContent() {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify({ eventId: pickedEvent.eventId }),
       })
@@ -316,6 +332,7 @@ function ScheduleContent() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify({
           eventId: pickedEvent.eventId,
@@ -340,7 +357,7 @@ function ScheduleContent() {
           const newLookup = { ...prev }
           delete newLookup[pickedEvent.startUTC]
           newLookup[newUTC] = {
-            eventId: pickedEvent.eventId,
+            eventId: moveTarget.toISOString(),
             start: moveTarget,
             end: newEnd,
           }
